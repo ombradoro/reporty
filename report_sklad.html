@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rozšírený Skladový Report</title>
+    <title>Skladový Report - Komplet</title>
     <style>
         :root {
             --primary-color: #2c3e50;
@@ -43,7 +43,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px; /* Trochu menšie písmo, aby sa všetko zmestilo */
+            font-size: 13px;
         }
 
         thead {
@@ -69,7 +69,8 @@
         .col-marza { color: #27ae60; font-weight: bold; }
         .col-sklad { color: #e67e22; font-weight: bold; }
         .col-orig-cena { text-decoration: line-through; color: #999; font-size: 0.9em; }
-        .col-variant { color: #555; font-style: italic; }
+        .col-nakup-cena { color: #c0392b; font-style: italic; } /* Červená pre nákup */
+        .col-variant { color: #555; font-style: italic; font-size: 0.9em; }
 
         /* Editovateľné pole */
         .real-stock-input {
@@ -95,7 +96,7 @@
             body { background: white; padding: 0; }
             .btn-print { display: none; }
             .table-container { box-shadow: none; }
-            th, td { padding: 6px 8px; font-size: 11px; }
+            th, td { padding: 6px 8px; font-size: 10px; }
             @page { size: landscape; margin: 0.5cm; }
         }
     </style>
@@ -116,9 +117,10 @@
                 <tr>
                     <th>Produkt</th>
                     <th>Variant</th>
-                    <th>Kód dodávateľa</th>
+                    <th>Kód</th>
+                    <th class="col-cislo">Nákupná cena</th>
                     <th class="col-cislo">Pôvodná cena</th>
-                    <th class="col-cislo">Aktuálna cena</th>
+                    <th class="col-cislo">Predajná cena</th>
                     <th class="col-cislo">Marža</th>
                     <th class="col-cislo">Sklad</th>
                     <th style="text-align: center;">Inventúra</th>
@@ -130,142 +132,142 @@
 
     <script>
         const products = [
-            {"name": "LUCREZIA - Nadčasové lurexové šaty", "variant": "Viacero variantov", "supplier_code": "LD3878", "original_price": "59.90 €", "price": "50.90 €", "margin": "48.0 %", "stock": "0 ks"},
-            {"name": "LUCREZIA", "variant": "Hnedá (Marrone), S/M", "supplier_code": "-", "original_price": "59.90 €", "price": "50.90 €", "margin": "48.0 %", "stock": "3 ks"},
-            {"name": "LUCREZIA", "variant": "Hnedá (Marrone), M/L", "supplier_code": "-", "original_price": "59.90 €", "price": "50.90 €", "margin": "48.0 %", "stock": "3 ks"},
-            {"name": "LUCREZIA", "variant": "Čierna (Nero), S/M", "supplier_code": "-", "original_price": "59.90 €", "price": "50.90 €", "margin": "48.0 %", "stock": "2 ks"},
-            {"name": "LUCREZIA", "variant": "Čierna (Nero), M/L", "supplier_code": "-", "original_price": "59.90 €", "price": "50.90 €", "margin": "48.0 %", "stock": "2 ks"},
-            {"name": "LUCREZIA", "variant": "Červená (Rosso), S/M", "supplier_code": "-", "original_price": "59.90 €", "price": "50.90 €", "margin": "48.0 %", "stock": "3 ks"},
-            {"name": "LUCREZIA", "variant": "Červená (Rosso), M/L", "supplier_code": "-", "original_price": "59.90 €", "price": "50.90 €", "margin": "48.0 %", "stock": "3 ks"},
-            {"name": "CAMICIA VALENT- exkluzívna červená košeľa s pierkami", "variant": "Viacero variantov", "supplier_code": "L9457", "original_price": "85.90 €", "price": "73.00 €", "margin": "42.0 %", "stock": "0 ks"},
-            {"name": "CAMICIA", "variant": "S/M", "supplier_code": "-", "original_price": "85.90 €", "price": "73.00 €", "margin": "42.0 %", "stock": "5 ks"},
-            {"name": "CAMICIA", "variant": "M/L", "supplier_code": "-", "original_price": "85.90 €", "price": "73.00 €", "margin": "42.0 %", "stock": "5 ks"},
-            {"name": "ISABELLA - Očarujúce červené saténové šaty", "variant": "Viacero variantov", "supplier_code": "LD4102", "original_price": "69.00 €", "price": "58.60 €", "margin": "43.2 %", "stock": "0 ks"},
-            {"name": "ISABELLA", "variant": "S", "supplier_code": "-", "original_price": "69.00 €", "price": "58.60 €", "margin": "43.2 %", "stock": "2 ks"},
-            {"name": "ISABELLA", "variant": "M", "supplier_code": "-", "original_price": "69.00 €", "price": "58.60 €", "margin": "43.2 %", "stock": "2 ks"},
-            {"name": "ISABELLA", "variant": "L", "supplier_code": "-", "original_price": "69.00 €", "price": "58.60 €", "margin": "43.2 %", "stock": "2 ks"},
-            {"name": "ALLEGRA - Elegantné šaty", "variant": "Viacero variantov", "supplier_code": "LD4289", "original_price": "87.00 €", "price": "73.90 €", "margin": "44.7 %", "stock": "0 ks"},
-            {"name": "ALLEGRA", "variant": "Čierna (Nero), S", "supplier_code": "-", "original_price": "87.00 €", "price": "73.90 €", "margin": "44.7 %", "stock": "1 ks"},
-            {"name": "ALLEGRA", "variant": "Čierna (Nero), M", "supplier_code": "-", "original_price": "87.00 €", "price": "73.90 €", "margin": "44.7 %", "stock": "1 ks"},
-            {"name": "ALLEGRA", "variant": "Čierna (Nero), L", "supplier_code": "-", "original_price": "87.00 €", "price": "73.90 €", "margin": "44.7 %", "stock": "2 ks"},
-            {"name": "ALLEGRA", "variant": "Červená (Rosso), S", "supplier_code": "-", "original_price": "87.00 €", "price": "73.90 €", "margin": "44.7 %", "stock": "1 ks"},
-            {"name": "ORIANA - Exkluzívne zlaté mini šaty", "variant": "Viacero variantov", "supplier_code": "LD4291", "original_price": "69.00 €", "price": "58.60 €", "margin": "43.2 %", "stock": "0 ks"},
-            {"name": "ORIANA", "variant": "S", "supplier_code": "-", "original_price": "69.00 €", "price": "58.60 €", "margin": "43.2 %", "stock": "1 ks"},
-            {"name": "ORIANA", "variant": "M", "supplier_code": "-", "original_price": "69.00 €", "price": "58.60 €", "margin": "43.2 %", "stock": "2 ks"},
-            {"name": "ALESSIA - Bordové šaty s čiernými pierkami", "variant": "Viacero variantov", "supplier_code": "LD4293", "original_price": "79.00 €", "price": "67.10 €", "margin": "44.7 %", "stock": "0 ks"},
-            {"name": "ALESSIA", "variant": "S", "supplier_code": "-", "original_price": "79.00 €", "price": "67.10 €", "margin": "44.7 %", "stock": "2 ks"},
-            {"name": "ALESSIA", "variant": "M", "supplier_code": "-", "original_price": "79.00 €", "price": "67.10 €", "margin": "44.7 %", "stock": "3 ks"},
-            {"name": "ALESSIA", "variant": "L", "supplier_code": "-", "original_price": "79.00 €", "price": "67.10 €", "margin": "44.7 %", "stock": "2 ks"},
-            {"name": "CORTINA - Dlhý kožuch s opaskom ONE SIZE", "variant": "Viacero variantov", "supplier_code": "D3507", "original_price": "199.00 €", "price": "169.20 €", "margin": "42.8 %", "stock": "3 ks"},
-            {"name": "CORTINA", "variant": "Bežová (Beige)", "supplier_code": "-", "original_price": "199.00 €", "price": "169.20 €", "margin": "42.8 %", "stock": "2 ks"},
-            {"name": "CORTINA", "variant": "Čierna (Nero)", "supplier_code": "-", "original_price": "199.00 €", "price": "169.20 €", "margin": "42.8 %", "stock": "1 ks"},
-            {"name": "SAVANNAH - Leopardí kožuch ONE SIZE", "variant": "-", "supplier_code": "C6285", "original_price": "83.90 €", "price": "71.30 €", "margin": "47.0 %", "stock": "1 ks"},
-            {"name": "BELLAGIO - Luxusný maxi kožuch ONE SIZE", "variant": "-", "supplier_code": "C6656", "original_price": "179.00 €", "price": "152.20 €", "margin": "48.3 %", "stock": "3 ks"},
-            {"name": "VITTORIA - Štýlová zipsová kožušinka", "variant": "-", "supplier_code": "C6661", "original_price": "155.00 €", "price": "131.80 €", "margin": "42.0 %", "stock": "4 ks"},
-            {"name": "VERONA - Komfortné Joggers nohavice", "variant": "Viacero variantov", "supplier_code": "P00030", "original_price": "63.90 €", "price": "54.30 €", "margin": "44.3 %", "stock": "0 ks"},
-            {"name": "VERONA", "variant": "Hnedá (Marrone), S/M", "supplier_code": "-", "original_price": "63.90 €", "price": "54.30 €", "margin": "44.3 %", "stock": "1 ks"},
-            {"name": "VERONA", "variant": "Hnedá (Marrone), M/L", "supplier_code": "-", "original_price": "63.90 €", "price": "54.30 €", "margin": "44.3 %", "stock": "1 ks"},
-            {"name": "VERONA", "variant": "Čierna (Nero), S/M", "supplier_code": "-", "original_price": "63.90 €", "price": "54.30 €", "margin": "44.3 %", "stock": "1 ks"},
-            {"name": "VERONA", "variant": "Čierna (Nero), M/L", "supplier_code": "-", "original_price": "63.90 €", "price": "54.30 €", "margin": "44.3 %", "stock": "1 ks"},
-            {"name": "GIOIA - Asymetrická glamour mini sukňa", "variant": "Viacero variantov", "supplier_code": "L9435", "original_price": "69.00 €", "price": "58.60 €", "margin": "41.9 %", "stock": "0 ks"},
-            {"name": "GIOIA", "variant": "Čierna (Nero), S", "supplier_code": "-", "original_price": "69.00 €", "price": "58.60 €", "margin": "41.9 %", "stock": "3 ks"},
-            {"name": "GIOIA", "variant": "Čierna (Nero), M", "supplier_code": "-", "original_price": "69.00 €", "price": "58.60 €", "margin": "41.9 %", "stock": "0 ks"},
-            {"name": "GIOIA", "variant": "Hnedá (Marrone), S", "supplier_code": "-", "original_price": "69.00 €", "price": "58.60 €", "margin": "41.9 %", "stock": "3 ks"},
-            {"name": "GIOIA", "variant": "Hnedá (Marrone), M", "supplier_code": "-", "original_price": "69.00 €", "price": "58.60 €", "margin": "41.9 %", "stock": "0 ks"},
-            {"name": "GIOIA", "variant": "Hnedá (Marrone), L", "supplier_code": "-", "original_price": "69.00 €", "price": "58.60 €", "margin": "41.9 %", "stock": "2 ks"},
-            {"name": "SOFIA - Hodvábne jemná čierna blúzka", "variant": "Viacero variantov", "supplier_code": "L9375", "original_price": "56.90 €", "price": "48.40 €", "margin": "43.7 %", "stock": "0 ks"},
-            {"name": "SOFIA", "variant": "S/M", "supplier_code": "-", "original_price": "56.90 €", "price": "48.40 €", "margin": "43.7 %", "stock": "3 ks"},
-            {"name": "SOFIA", "variant": "M/L", "supplier_code": "-", "original_price": "56.90 €", "price": "48.40 €", "margin": "43.7 %", "stock": "3 ks"},
-            {"name": "FLORENCIA - Elegantná kombinovaná sukňa", "variant": "Viacero variantov", "supplier_code": "L9417", "original_price": "61.90 €", "price": "52.60 €", "margin": "43.9 %", "stock": "0 ks"},
-            {"name": "FLORENCIA", "variant": "Čierna (Nero), S", "supplier_code": "-", "original_price": "61.90 €", "price": "52.60 €", "margin": "43.9 %", "stock": "2 ks"},
-            {"name": "FLORENCIA", "variant": "Čierna (Nero), M", "supplier_code": "-", "original_price": "61.90 €", "price": "52.60 €", "margin": "43.9 %", "stock": "2 ks"},
-            {"name": "FLORENCIA", "variant": "Čierna (Nero), L", "supplier_code": "-", "original_price": "61.90 €", "price": "52.60 €", "margin": "43.9 %", "stock": "1 ks"},
-            {"name": "FLORENCIA", "variant": "Béžová (Beige), S", "supplier_code": "-", "original_price": "61.90 €", "price": "52.60 €", "margin": "43.9 %", "stock": "2 ks"},
-            {"name": "FLORENCIA", "variant": "Béžová (Beige), M", "supplier_code": "-", "original_price": "61.90 €", "price": "52.60 €", "margin": "43.9 %", "stock": "2 ks"},
-            {"name": "FLORENCIA", "variant": "Béžová (Beige), L", "supplier_code": "-", "original_price": "61.90 €", "price": "52.60 €", "margin": "43.9 %", "stock": "2 ks"},
-            {"name": "MILANO - Elegantné dámske košeľové body", "variant": "Viacero variantov", "supplier_code": "Y0036", "original_price": "54.90 €", "price": "46.70 €", "margin": "43.3 %", "stock": "0 ks"},
-            {"name": "MILANO", "variant": "S/M", "supplier_code": "-", "original_price": "54.90 €", "price": "46.70 €", "margin": "43.3 %", "stock": "3 ks"},
-            {"name": "MILANO", "variant": "M/L", "supplier_code": "-", "original_price": "54.90 €", "price": "46.70 €", "margin": "43.3 %", "stock": "2 ks"},
-            {"name": "COMO - Jemný top s prímesou kašmíru", "variant": "Viacero variantov", "supplier_code": "P00035", "original_price": "33.90 €", "price": "28.80 €", "margin": "50.1 %", "stock": "0 ks"},
-            {"name": "COMO", "variant": "Čierna (Nero), S/M", "supplier_code": "-", "original_price": "33.90 €", "price": "28.80 €", "margin": "50.1 %", "stock": "3 ks"},
-            {"name": "COMO", "variant": "Čierna (Nero), M/L", "supplier_code": "-", "original_price": "33.90 €", "price": "28.80 €", "margin": "50.1 %", "stock": "2 ks"},
-            {"name": "COMO", "variant": "Šedá (Grigio), S/M", "supplier_code": "-", "original_price": "33.90 €", "price": "28.80 €", "margin": "50.1 %", "stock": "3 ks"},
-            {"name": "COMO", "variant": "Šedá (Grigio), M/L", "supplier_code": "-", "original_price": "33.90 €", "price": "28.80 €", "margin": "50.1 %", "stock": "2 ks"},
-            {"name": "UNICA II - Čipkované body", "variant": "Viacero variantov", "supplier_code": "Y0035", "original_price": "42.90 €", "price": "36.50 €", "margin": "54.4 %", "stock": "0 ks"},
-            {"name": "UNICA-II", "variant": "Čierna (Nero), S/M", "supplier_code": "-", "original_price": "42.90 €", "price": "36.50 €", "margin": "54.4 %", "stock": "2 ks"},
-            {"name": "UNICA-II", "variant": "Čierna (Nero), M/L", "supplier_code": "-", "original_price": "42.90 €", "price": "36.50 €", "margin": "54.4 %", "stock": "3 ks"},
-            {"name": "UNICA-II", "variant": "Biela (Bianco), S/M", "supplier_code": "-", "original_price": "42.90 €", "price": "36.50 €", "margin": "54.4 %", "stock": "4 ks"},
-            {"name": "UNICA-II", "variant": "Biela (Bianco), M/L", "supplier_code": "-", "original_price": "42.90 €", "price": "36.50 €", "margin": "54.4 %", "stock": "3 ks"},
-            {"name": "LUMINOSA - Očarujúci červený top s pierkami", "variant": "Viacero variantov", "supplier_code": "L9433", "original_price": "67.90 €", "price": "57.70 €", "margin": "43.6 %", "stock": "0 ks"},
-            {"name": "LUMINOSA", "variant": "S/M", "supplier_code": "-", "original_price": "67.90 €", "price": "57.70 €", "margin": "43.6 %", "stock": "6 ks"},
-            {"name": "LUMINOSA", "variant": "M/L", "supplier_code": "-", "original_price": "67.90 €", "price": "57.70 €", "margin": "43.6 %", "stock": "1 ks"},
-            {"name": "SCARLET - Šaty s pierkami", "variant": "Viacero variantov", "supplier_code": "LD4297", "original_price": "89.00 €", "price": "75.70 €", "margin": "45.0 %", "stock": "0 ks"},
-            {"name": "SCARLET", "variant": "S", "supplier_code": "-", "original_price": "89.00 €", "price": "75.70 €", "margin": "45.0 %", "stock": "1 ks"},
-            {"name": "SCARLET", "variant": "M", "supplier_code": "-", "original_price": "89.00 €", "price": "75.70 €", "margin": "45.0 %", "stock": "2 ks"},
-            {"name": "NERRIA - Čierne maxi šaty", "variant": "Viacero variantov", "supplier_code": "LD4298", "original_price": "82.90 €", "price": "70.50 €", "margin": "48.5 %", "stock": "0 ks"},
-            {"name": "NERRIA", "variant": "S", "supplier_code": "-", "original_price": "82.90 €", "price": "70.50 €", "margin": "48.5 %", "stock": "1 ks"},
-            {"name": "NERRIA", "variant": "M", "supplier_code": "-", "original_price": "82.90 €", "price": "70.50 €", "margin": "48.5 %", "stock": "2 ks"},
-            {"name": "AURELIA - Krátke šaty z laminovanej látky s vysokým golierom", "variant": "Viacero variantov", "supplier_code": "LD3879", "original_price": "49.90 €", "price": "42.40 €", "margin": "51.8 %", "stock": "0 ks"},
-            {"name": "AURELIA", "variant": "S/M", "supplier_code": "-", "original_price": "49.90 €", "price": "42.40 €", "margin": "51.8 %", "stock": "2 ks"},
-            {"name": "AURELIA", "variant": "M/L", "supplier_code": "-", "original_price": "49.90 €", "price": "42.40 €", "margin": "51.8 %", "stock": "2 ks"},
-            {"name": "LANIA - Elegantný rolák s čipkou", "variant": "Viacero variantov", "supplier_code": "M3373", "original_price": "44.90 €", "price": "38.20 €", "margin": "52.5 %", "stock": "0 ks"},
-            {"name": "LANIA", "variant": "S/M", "supplier_code": "-", "original_price": "44.90 €", "price": "38.20 €", "margin": "52.5 %", "stock": "3 ks"},
-            {"name": "LANIA", "variant": "M/L", "supplier_code": "-", "original_price": "44.90 €", "price": "38.20 €", "margin": "52.5 %", "stock": "3 ks"},
-            {"name": "MILOSO - One size mäkký sveter s baby alpakou", "variant": "-", "supplier_code": "P00030", "original_price": "63.90 €", "price": "54.30 €", "margin": "44.3 %", "stock": "2 ks"},
-            {"name": "GIULIA - Prémiový rolák s kašmírom", "variant": "Viacero variantov", "supplier_code": "P00031", "original_price": "36.90 €", "price": "31.40 €", "margin": "51.8 %", "stock": "0 ks"},
-            {"name": "GIULIA", "variant": "Červená (Rosso), S/M", "supplier_code": "-", "original_price": "36.90 €", "price": "31.40 €", "margin": "51.8 %", "stock": "3 ks"},
-            {"name": "GIULIA", "variant": "Červená (Rosso), M/L", "supplier_code": "-", "original_price": "36.90 €", "price": "31.40 €", "margin": "51.8 %", "stock": "4 ks"},
-            {"name": "GIULIA", "variant": "Čierna (Nero), S/M", "supplier_code": "-", "original_price": "36.90 €", "price": "31.40 €", "margin": "51.8 %", "stock": "4 ks"},
-            {"name": "GIULIA", "variant": "Čierna (Nero), M/L", "supplier_code": "-", "original_price": "36.90 €", "price": "31.40 €", "margin": "51.8 %", "stock": "3 ks"},
-            {"name": "VIVIANA - Nadýchaný sveter s 80% mohérom", "variant": "Viacero variantov", "supplier_code": "M3536", "original_price": "88.90 €", "price": "75.60 €", "margin": "45.0 %", "stock": "0 ks"},
-            {"name": "VIVIANA", "variant": "Šedá (Grigio)", "supplier_code": "-", "original_price": "88.90 €", "price": "75.60 €", "margin": "45.0 %", "stock": "2 ks"},
-            {"name": "CAMILLA - Hrejivý rolák s prímesou alpaky", "variant": "Viacero variantov", "supplier_code": "M3530", "original_price": "65.90 €", "price": "56.00 €", "margin": "44.6 %", "stock": "0 ks"},
-            {"name": "CAMILLA", "variant": "Hnedá (Marrone)", "supplier_code": "-", "original_price": "65.90 €", "price": "56.00 €", "margin": "44.6 %", "stock": "3 ks"},
-            {"name": "CAMILLA", "variant": "Béžová (Beige)", "supplier_code": "-", "original_price": "65.90 €", "price": "56.00 €", "margin": "44.6 %", "stock": "3 ks"},
-            {"name": "GABRIELLA - Mäkký kardigán v hnedej farbe", "variant": "-", "supplier_code": "M3533", "original_price": "119.00 €", "price": "101.20 €", "margin": "49.9 %", "stock": "3 ks"},
-            {"name": "OLYMPIA - Večerné šaty s leskom", "variant": "Viacero variantov", "supplier_code": "LD4290", "original_price": "98.90 €", "price": "84.10 €", "margin": "46.9 %", "stock": "0 ks"},
-            {"name": "OLYMPIA", "variant": "Hnedá (Marrone), S", "supplier_code": "-", "original_price": "98.90 €", "price": "84.10 €", "margin": "46.9 %", "stock": "3 ks"},
-            {"name": "OLYMPIA", "variant": "Hnedá (Marrone), M", "supplier_code": "-", "original_price": "98.90 €", "price": "84.10 €", "margin": "46.9 %", "stock": "3 ks"},
-            {"name": "OLYMPIA", "variant": "Čierna (Nero), S", "supplier_code": "-", "original_price": "98.90 €", "price": "84.10 €", "margin": "46.9 %", "stock": "1 ks"},
-            {"name": "OLYMPIA", "variant": "Čierna (Nero), M", "supplier_code": "-", "original_price": "98.90 €", "price": "84.10 €", "margin": "46.9 %", "stock": "3 ks"},
-            {"name": "OLYMPIA", "variant": "Červená (Rosso), S", "supplier_code": "-", "original_price": "98.90 €", "price": "84.10 €", "margin": "46.9 %", "stock": "4 ks"},
-            {"name": "OLYMPIA", "variant": "Červená (Rosso), M", "supplier_code": "-", "original_price": "98.90 €", "price": "84.10 €", "margin": "46.9 %", "stock": "1 ks"},
-            {"name": "VERONA HOODIE - Štýlová zateplená mikina", "variant": "Viacero variantov", "supplier_code": "P00030", "original_price": "64.90 €", "price": "55.20 €", "margin": "46.5 %", "stock": "0 ks"},
-            {"name": "VERONA-HOODIE", "variant": "Hnedá (Marrone), S/M", "supplier_code": "-", "original_price": "64.90 €", "price": "55.20 €", "margin": "46.5 %", "stock": "2 ks"},
-            {"name": "VERONA-HOODIE", "variant": "Hnedá (Marrone), M/L", "supplier_code": "-", "original_price": "64.90 €", "price": "55.20 €", "margin": "46.5 %", "stock": "2 ks"},
-            {"name": "ROSSANA - červená sukňa s vysokým razporkom", "variant": "Viacero variantov", "supplier_code": "L9423", "original_price": "61.90 €", "price": "52.60 €", "margin": "52.5 %", "stock": "0 ks"},
-            {"name": "ROSSANA", "variant": "S", "supplier_code": "-", "original_price": "61.90 €", "price": "52.60 €", "margin": "52.5 %", "stock": "5 ks"},
-            {"name": "ROSSANA", "variant": "M", "supplier_code": "-", "original_price": "61.90 €", "price": "52.60 €", "margin": "52.5 %", "stock": "5 ks"},
-            {"name": "LORETTA - Elegantné červené sako", "variant": "Viacero variantov", "supplier_code": "P00032", "original_price": "89.00 €", "price": "75.70 €", "margin": "50.0 %", "stock": "0 ks"},
-            {"name": "P00032", "variant": "S/M", "supplier_code": "-", "original_price": "89.00 €", "price": "75.70 €", "margin": "50.0 %", "stock": "3 ks"},
-            {"name": "P00032", "variant": "M/L", "supplier_code": "-", "original_price": "89.00 €", "price": "75.70 €", "margin": "50.0 %", "stock": "3 ks"},
-            {"name": "UNICA - Mini sukňa s mašľou", "variant": "Viacero variantov", "supplier_code": "L9370", "original_price": "44.90 €", "price": "38.20 €", "margin": "50.1 %", "stock": "0 ks"},
-            {"name": "UNICA-I", "variant": "Čierna (Nero), S/M", "supplier_code": "-", "original_price": "44.90 €", "price": "38.20 €", "margin": "50.1 %", "stock": "3 ks"},
-            {"name": "UNICA-I", "variant": "Čierna (Nero), M/L", "supplier_code": "-", "original_price": "44.90 €", "price": "38.20 €", "margin": "50.1 %", "stock": "2 ks"},
-            {"name": "UNICA-I", "variant": "Biela (Bianco), S/M", "supplier_code": "-", "original_price": "44.90 €", "price": "38.20 €", "margin": "50.1 %", "stock": "2 ks"},
-            {"name": "UNICA-I", "variant": "Biela (Bianco), M/L", "supplier_code": "-", "original_price": "44.90 €", "price": "38.20 €", "margin": "50.1 %", "stock": "2 ks"},
-            {"name": "Kabát CARRELLO Verde Militare", "variant": "Viacero variantov", "supplier_code": "C6287", "original_price": "129.00 €", "price": "109.70 €", "margin": "56.6 %", "stock": "0 ks"},
-            {"name": "CARRELLO", "variant": "S", "supplier_code": "-", "original_price": "129.00 €", "price": "109.70 €", "margin": "56.6 %", "stock": "1 ks"},
-            {"name": "CARRELLO", "variant": "M", "supplier_code": "-", "original_price": "129.00 €", "price": "109.70 €", "margin": "56.6 %", "stock": "1 ks"},
-            {"name": "CARRELLO", "variant": "L", "supplier_code": "-", "original_price": "129.00 €", "price": "109.70 €", "margin": "56.6 %", "stock": "1 ks"},
-            {"name": "Krátky kabát CAPPOTTO Corto", "variant": "Viacero variantov", "supplier_code": "C6660", "original_price": "99.00 €", "price": "84.20 €", "margin": "61.6 %", "stock": "0 ks"},
-            {"name": "CAPPOTTO-C", "variant": "Camel, S", "supplier_code": "-", "original_price": "99.00 €", "price": "84.20 €", "margin": "61.6 %", "stock": "2 ks"},
-            {"name": "CAPPOTTO-C", "variant": "Camel, M", "supplier_code": "-", "original_price": "99.00 €", "price": "84.20 €", "margin": "61.6 %", "stock": "0 ks"},
-            {"name": "CAPPOTTO-C", "variant": "Camel, L", "supplier_code": "-", "original_price": "99.00 €", "price": "84.20 €", "margin": "61.6 %", "stock": "2 ks"},
-            {"name": "CAPPOTTO-C", "variant": "Camel, XL", "supplier_code": "-", "original_price": "99.00 €", "price": "84.20 €", "margin": "61.6 %", "stock": "2 ks"},
-            {"name": "NIMARA Legíny s vysokým pásom a gumou pod pätu", "variant": "Viacero variantov", "supplier_code": "P9813", "original_price": "32.90 €", "price": "28.00 €", "margin": "58.0 %", "stock": "0 ks"},
-            {"name": "NIMARA", "variant": "S", "supplier_code": "-", "original_price": "32.90 €", "price": "28.00 €", "margin": "58.0 %", "stock": "1 ks"},
-            {"name": "NIMARA", "variant": "M", "supplier_code": "-", "original_price": "32.90 €", "price": "28.00 €", "margin": "58.0 %", "stock": "0 ks"},
-            {"name": "NIMARA", "variant": "L", "supplier_code": "-", "original_price": "32.90 €", "price": "28.00 €", "margin": "58.0 %", "stock": "1 ks"},
-            {"name": "NIMARA", "variant": "XL", "supplier_code": "-", "original_price": "32.90 €", "price": "28.00 €", "margin": "58.0 %", "stock": "4 ks"},
-            {"name": "Univerzálne Elastické Legíny ORENA", "variant": "Viacero variantov", "supplier_code": "P8308", "original_price": "26.90 €", "price": "22.90 €", "margin": "57.3 %", "stock": "0 ks"},
-            {"name": "ORENA", "variant": "S/M", "supplier_code": "-", "original_price": "26.90 €", "price": "22.90 €", "margin": "57.3 %", "stock": "3 ks"},
-            {"name": "ORENA", "variant": "L/XL", "supplier_code": "-", "original_price": "26.90 €", "price": "22.90 €", "margin": "57.3 %", "stock": "3 ks"},
-            {"name": "VELIA Body s Laminovaným Efektom S/M", "variant": "-", "supplier_code": "Y0034", "original_price": "29.90 €", "price": "25.40 €", "margin": "83.5 %", "stock": "3 ks"},
-            {"name": "SALIA CAMMELLO Sukňa s Rozporkom", "variant": "Viacero variantov", "supplier_code": "L9332", "original_price": "58.90 €", "price": "50.10 €", "margin": "65.6 %", "stock": "0 ks"},
-            {"name": "SALIA", "variant": "S", "supplier_code": "-", "original_price": "58.90 €", "price": "50.10 €", "margin": "65.6 %", "stock": "0 ks"},
-            {"name": "SALIA", "variant": "M", "supplier_code": "-", "original_price": "58.90 €", "price": "50.10 €", "margin": "65.6 %", "stock": "1 ks"},
-            {"name": "SALIA", "variant": "L", "supplier_code": "-", "original_price": "58.90 €", "price": "50.10 €", "margin": "65.6 %", "stock": "2 ks"}
+            {"name": "LUCREZIA - Nadčasové lurexové šaty", "variant": "Viacero variantov", "supplier_code": "LD3878", "buy_price": "21.53 €", "original_price": "59.90 €", "price": "50.90 €", "margin": "48.0 %", "stock": "0 ks"},
+            {"name": "LUCREZIA", "variant": "Hnedá (Marrone), S/M", "supplier_code": "-", "buy_price": "21.53 €", "original_price": "59.90 €", "price": "50.90 €", "margin": "48.0 %", "stock": "3 ks"},
+            {"name": "LUCREZIA", "variant": "Hnedá (Marrone), M/L", "supplier_code": "-", "buy_price": "21.53 €", "original_price": "59.90 €", "price": "50.90 €", "margin": "48.0 %", "stock": "3 ks"},
+            {"name": "LUCREZIA", "variant": "Čierna (Nero), S/M", "supplier_code": "-", "buy_price": "21.53 €", "original_price": "59.90 €", "price": "50.90 €", "margin": "48.0 %", "stock": "2 ks"},
+            {"name": "LUCREZIA", "variant": "Čierna (Nero), M/L", "supplier_code": "-", "buy_price": "21.53 €", "original_price": "59.90 €", "price": "50.90 €", "margin": "48.0 %", "stock": "2 ks"},
+            {"name": "LUCREZIA", "variant": "Červená (Rosso), S/M", "supplier_code": "-", "buy_price": "21.53 €", "original_price": "59.90 €", "price": "50.90 €", "margin": "48.0 %", "stock": "3 ks"},
+            {"name": "LUCREZIA", "variant": "Červená (Rosso), M/L", "supplier_code": "-", "buy_price": "21.53 €", "original_price": "59.90 €", "price": "50.90 €", "margin": "48.0 %", "stock": "3 ks"},
+            {"name": "CAMICIA VALENT- exkluzívna červená košeľa s pierkami", "variant": "Viacero variantov", "supplier_code": "L9457", "buy_price": "31.33 €", "original_price": "85.90 €", "price": "73.00 €", "margin": "42.0 %", "stock": "0 ks"},
+            {"name": "CAMICIA", "variant": "S/M", "supplier_code": "-", "buy_price": "31.33 €", "original_price": "85.90 €", "price": "73.00 €", "margin": "42.0 %", "stock": "5 ks"},
+            {"name": "CAMICIA", "variant": "M/L", "supplier_code": "-", "buy_price": "31.33 €", "original_price": "85.90 €", "price": "73.00 €", "margin": "42.0 %", "stock": "5 ks"},
+            {"name": "ISABELLA - Očarujúce červené saténové šaty", "variant": "Viacero variantov", "supplier_code": "LD4102", "buy_price": "24.23 €", "original_price": "69.00 €", "price": "58.60 €", "margin": "43.2 %", "stock": "0 ks"},
+            {"name": "ISABELLA", "variant": "S", "supplier_code": "-", "buy_price": "24.23 €", "original_price": "69.00 €", "price": "58.60 €", "margin": "43.2 %", "stock": "2 ks"},
+            {"name": "ISABELLA", "variant": "M", "supplier_code": "-", "buy_price": "24.23 €", "original_price": "69.00 €", "price": "58.60 €", "margin": "43.2 %", "stock": "2 ks"},
+            {"name": "ISABELLA", "variant": "L", "supplier_code": "-", "buy_price": "24.23 €", "original_price": "69.00 €", "price": "58.60 €", "margin": "43.2 %", "stock": "2 ks"},
+            {"name": "ALLEGRA - Elegantné šaty", "variant": "Viacero variantov", "supplier_code": "LD4289", "buy_price": "30.00 €", "original_price": "87.00 €", "price": "73.90 €", "margin": "44.7 %", "stock": "0 ks"},
+            {"name": "ALLEGRA", "variant": "Čierna (Nero), S", "supplier_code": "-", "buy_price": "30.00 €", "original_price": "87.00 €", "price": "73.90 €", "margin": "44.7 %", "stock": "1 ks"},
+            {"name": "ALLEGRA", "variant": "Čierna (Nero), M", "supplier_code": "-", "buy_price": "30.00 €", "original_price": "87.00 €", "price": "73.90 €", "margin": "44.7 %", "stock": "1 ks"},
+            {"name": "ALLEGRA", "variant": "Čierna (Nero), L", "supplier_code": "-", "buy_price": "30.00 €", "original_price": "87.00 €", "price": "73.90 €", "margin": "44.7 %", "stock": "2 ks"},
+            {"name": "ALLEGRA", "variant": "Červená (Rosso), S", "supplier_code": "-", "buy_price": "30.00 €", "original_price": "87.00 €", "price": "73.90 €", "margin": "44.7 %", "stock": "1 ks"},
+            {"name": "ORIANA - Exkluzívne zlaté mini šaty", "variant": "Viacero variantov", "supplier_code": "LD4291", "buy_price": "24.23 €", "original_price": "69.00 €", "price": "58.60 €", "margin": "43.2 %", "stock": "0 ks"},
+            {"name": "ORIANA", "variant": "S", "supplier_code": "-", "buy_price": "24.23 €", "original_price": "69.00 €", "price": "58.60 €", "margin": "43.2 %", "stock": "1 ks"},
+            {"name": "ORIANA", "variant": "M", "supplier_code": "-", "buy_price": "24.23 €", "original_price": "69.00 €", "price": "58.60 €", "margin": "43.2 %", "stock": "2 ks"},
+            {"name": "ALESSIA - Bordové šaty s čiernými pierkami", "variant": "Viacero variantov", "supplier_code": "LD4293", "buy_price": "27.00 €", "original_price": "79.00 €", "price": "67.10 €", "margin": "44.7 %", "stock": "0 ks"},
+            {"name": "ALESSIA", "variant": "S", "supplier_code": "-", "buy_price": "27.00 €", "original_price": "79.00 €", "price": "67.10 €", "margin": "44.7 %", "stock": "2 ks"},
+            {"name": "ALESSIA", "variant": "M", "supplier_code": "-", "buy_price": "27.00 €", "original_price": "79.00 €", "price": "67.10 €", "margin": "44.7 %", "stock": "3 ks"},
+            {"name": "ALESSIA", "variant": "L", "supplier_code": "-", "buy_price": "27.00 €", "original_price": "79.00 €", "price": "67.10 €", "margin": "44.7 %", "stock": "2 ks"},
+            {"name": "CORTINA - Dlhý kožuch s opaskom ONE SIZE", "variant": "Viacero variantov", "supplier_code": "D3507", "buy_price": "69.00 €", "original_price": "199.00 €", "price": "169.20 €", "margin": "42.8 %", "stock": "3 ks"},
+            {"name": "CORTINA", "variant": "Bežová (Beige)", "supplier_code": "-", "buy_price": "69.00 €", "original_price": "199.00 €", "price": "169.20 €", "margin": "42.8 %", "stock": "2 ks"},
+            {"name": "CORTINA", "variant": "Čierna (Nero)", "supplier_code": "-", "buy_price": "69.00 €", "original_price": "199.00 €", "price": "169.20 €", "margin": "42.8 %", "stock": "1 ks"},
+            {"name": "SAVANNAH - Leopardí kožuch ONE SIZE", "variant": "-", "supplier_code": "C6285", "buy_price": "27.50 €", "original_price": "83.90 €", "price": "71.30 €", "margin": "47.0 %", "stock": "1 ks"},
+            {"name": "BELLAGIO - Luxusný maxi kožuch ONE SIZE", "variant": "-", "supplier_code": "C6656", "buy_price": "56.88 €", "original_price": "179.00 €", "price": "152.20 €", "margin": "48.3 %", "stock": "3 ks"},
+            {"name": "VITTORIA - Štýlová zipsová kožušinka", "variant": "-", "supplier_code": "C6661", "buy_price": "55.00 €", "original_price": "155.00 €", "price": "131.80 €", "margin": "42.0 %", "stock": "4 ks"},
+            {"name": "VERONA - Komfortné Joggers nohavice", "variant": "Viacero variantov", "supplier_code": "P00030", "buy_price": "21.90 €", "original_price": "63.90 €", "price": "54.30 €", "margin": "44.3 %", "stock": "0 ks"},
+            {"name": "VERONA", "variant": "Hnedá (Marrone), S/M", "supplier_code": "-", "buy_price": "21.90 €", "original_price": "63.90 €", "price": "54.30 €", "margin": "44.3 %", "stock": "1 ks"},
+            {"name": "VERONA", "variant": "Hnedá (Marrone), M/L", "supplier_code": "-", "buy_price": "21.90 €", "original_price": "63.90 €", "price": "54.30 €", "margin": "44.3 %", "stock": "1 ks"},
+            {"name": "VERONA", "variant": "Čierna (Nero), S/M", "supplier_code": "-", "buy_price": "21.90 €", "original_price": "63.90 €", "price": "54.30 €", "margin": "44.3 %", "stock": "1 ks"},
+            {"name": "VERONA", "variant": "Čierna (Nero), M/L", "supplier_code": "-", "buy_price": "21.90 €", "original_price": "63.90 €", "price": "54.30 €", "margin": "44.3 %", "stock": "1 ks"},
+            {"name": "GIOIA - Asymetrická glamour mini sukňa", "variant": "Viacero variantov", "supplier_code": "L9435", "buy_price": "24.63 €", "original_price": "69.00 €", "price": "58.60 €", "margin": "41.9 %", "stock": "0 ks"},
+            {"name": "GIOIA", "variant": "Čierna (Nero), S", "supplier_code": "-", "buy_price": "24.63 €", "original_price": "69.00 €", "price": "58.60 €", "margin": "41.9 %", "stock": "3 ks"},
+            {"name": "GIOIA", "variant": "Čierna (Nero), M", "supplier_code": "-", "buy_price": "24.63 €", "original_price": "69.00 €", "price": "58.60 €", "margin": "41.9 %", "stock": "0 ks"},
+            {"name": "GIOIA", "variant": "Hnedá (Marrone), S", "supplier_code": "-", "buy_price": "24.63 €", "original_price": "69.00 €", "price": "58.60 €", "margin": "41.9 %", "stock": "3 ks"},
+            {"name": "GIOIA", "variant": "Hnedá (Marrone), M", "supplier_code": "-", "buy_price": "24.63 €", "original_price": "69.00 €", "price": "58.60 €", "margin": "41.9 %", "stock": "0 ks"},
+            {"name": "GIOIA", "variant": "Hnedá (Marrone), L", "supplier_code": "-", "buy_price": "24.63 €", "original_price": "69.00 €", "price": "58.60 €", "margin": "41.9 %", "stock": "2 ks"},
+            {"name": "SOFIA - Hodvábne jemná čierna blúzka", "variant": "Viacero variantov", "supplier_code": "L9375", "buy_price": "19.78 €", "original_price": "56.90 €", "price": "48.40 €", "margin": "43.7 %", "stock": "0 ks"},
+            {"name": "SOFIA", "variant": "S/M", "supplier_code": "-", "buy_price": "19.78 €", "original_price": "56.90 €", "price": "48.40 €", "margin": "43.7 %", "stock": "3 ks"},
+            {"name": "SOFIA", "variant": "M/L", "supplier_code": "-", "buy_price": "19.78 €", "original_price": "56.90 €", "price": "48.40 €", "margin": "43.7 %", "stock": "3 ks"},
+            {"name": "FLORENCIA - Elegantná kombinovaná sukňa", "variant": "Viacero variantov", "supplier_code": "L9417", "buy_price": "21.38 €", "original_price": "61.90 €", "price": "52.60 €", "margin": "43.9 %", "stock": "0 ks"},
+            {"name": "FLORENCIA", "variant": "Čierna (Nero), S", "supplier_code": "-", "buy_price": "21.38 €", "original_price": "61.90 €", "price": "52.60 €", "margin": "43.9 %", "stock": "2 ks"},
+            {"name": "FLORENCIA", "variant": "Čierna (Nero), M", "supplier_code": "-", "buy_price": "21.38 €", "original_price": "61.90 €", "price": "52.60 €", "margin": "43.9 %", "stock": "2 ks"},
+            {"name": "FLORENCIA", "variant": "Čierna (Nero), L", "supplier_code": "-", "buy_price": "21.38 €", "original_price": "61.90 €", "price": "52.60 €", "margin": "43.9 %", "stock": "1 ks"},
+            {"name": "FLORENCIA", "variant": "Béžová (Beige), S", "supplier_code": "-", "buy_price": "21.38 €", "original_price": "61.90 €", "price": "52.60 €", "margin": "43.9 %", "stock": "2 ks"},
+            {"name": "FLORENCIA", "variant": "Béžová (Beige), M", "supplier_code": "-", "buy_price": "21.38 €", "original_price": "61.90 €", "price": "52.60 €", "margin": "43.9 %", "stock": "2 ks"},
+            {"name": "FLORENCIA", "variant": "Béžová (Beige), L", "supplier_code": "-", "buy_price": "21.38 €", "original_price": "61.90 €", "price": "52.60 €", "margin": "43.9 %", "stock": "2 ks"},
+            {"name": "MILANO - Elegantné dámske košeľové body", "variant": "Viacero variantov", "supplier_code": "Y0036", "buy_price": "19.38 €", "original_price": "54.90 €", "price": "46.70 €", "margin": "43.3 %", "stock": "0 ks"},
+            {"name": "MILANO", "variant": "S/M", "supplier_code": "-", "buy_price": "19.38 €", "original_price": "54.90 €", "price": "46.70 €", "margin": "43.3 %", "stock": "3 ks"},
+            {"name": "MILANO", "variant": "M/L", "supplier_code": "-", "buy_price": "19.38 €", "original_price": "54.90 €", "price": "46.70 €", "margin": "43.3 %", "stock": "2 ks"},
+            {"name": "COMO - Jemný top s prímesou kašmíru", "variant": "Viacero variantov", "supplier_code": "P00035", "buy_price": "10.45 €", "original_price": "33.90 €", "price": "28.80 €", "margin": "50.1 %", "stock": "0 ks"},
+            {"name": "COMO", "variant": "Čierna (Nero), S/M", "supplier_code": "-", "buy_price": "10.45 €", "original_price": "33.90 €", "price": "28.80 €", "margin": "50.1 %", "stock": "3 ks"},
+            {"name": "COMO", "variant": "Čierna (Nero), M/L", "supplier_code": "-", "buy_price": "10.45 €", "original_price": "33.90 €", "price": "28.80 €", "margin": "50.1 %", "stock": "2 ks"},
+            {"name": "COMO", "variant": "Šedá (Grigio), S/M", "supplier_code": "-", "buy_price": "10.45 €", "original_price": "33.90 €", "price": "28.80 €", "margin": "50.1 %", "stock": "3 ks"},
+            {"name": "COMO", "variant": "Šedá (Grigio), M/L", "supplier_code": "-", "buy_price": "10.45 €", "original_price": "33.90 €", "price": "28.80 €", "margin": "50.1 %", "stock": "2 ks"},
+            {"name": "UNICA II - Čipkované body", "variant": "Viacero variantov", "supplier_code": "Y0035", "buy_price": "12.00 €", "original_price": "42.90 €", "price": "36.50 €", "margin": "54.4 %", "stock": "0 ks"},
+            {"name": "UNICA-II", "variant": "Čierna (Nero), S/M", "supplier_code": "-", "buy_price": "12.00 €", "original_price": "42.90 €", "price": "36.50 €", "margin": "54.4 %", "stock": "2 ks"},
+            {"name": "UNICA-II", "variant": "Čierna (Nero), M/L", "supplier_code": "-", "buy_price": "12.00 €", "original_price": "42.90 €", "price": "36.50 €", "margin": "54.4 %", "stock": "3 ks"},
+            {"name": "UNICA-II", "variant": "Biela (Bianco), S/M", "supplier_code": "-", "buy_price": "12.00 €", "original_price": "42.90 €", "price": "36.50 €", "margin": "54.4 %", "stock": "4 ks"},
+            {"name": "UNICA-II", "variant": "Biela (Bianco), M/L", "supplier_code": "-", "buy_price": "12.00 €", "original_price": "42.90 €", "price": "36.50 €", "margin": "54.4 %", "stock": "3 ks"},
+            {"name": "LUMINOSA - Očarujúci červený top s pierkami", "variant": "Viacero variantov", "supplier_code": "L9433", "buy_price": "23.50 €", "original_price": "67.90 €", "price": "57.70 €", "margin": "43.6 %", "stock": "0 ks"},
+            {"name": "LUMINOSA", "variant": "S/M", "supplier_code": "-", "buy_price": "23.50 €", "original_price": "67.90 €", "price": "57.70 €", "margin": "43.6 %", "stock": "6 ks"},
+            {"name": "LUMINOSA", "variant": "M/L", "supplier_code": "-", "buy_price": "23.50 €", "original_price": "67.90 €", "price": "57.70 €", "margin": "43.6 %", "stock": "1 ks"},
+            {"name": "SCARLET - Šaty s pierkami", "variant": "Viacero variantov", "supplier_code": "LD4297", "buy_price": "30.50 €", "original_price": "89.00 €", "price": "75.70 €", "margin": "45.0 %", "stock": "0 ks"},
+            {"name": "SCARLET", "variant": "S", "supplier_code": "-", "buy_price": "30.50 €", "original_price": "89.00 €", "price": "75.70 €", "margin": "45.0 %", "stock": "1 ks"},
+            {"name": "SCARLET", "variant": "M", "supplier_code": "-", "buy_price": "30.50 €", "original_price": "89.00 €", "price": "75.70 €", "margin": "45.0 %", "stock": "2 ks"},
+            {"name": "NERRIA - Čierne maxi šaty", "variant": "Viacero variantov", "supplier_code": "LD4298", "buy_price": "26.50 €", "original_price": "82.90 €", "price": "70.50 €", "margin": "48.5 %", "stock": "0 ks"},
+            {"name": "NERRIA", "variant": "S", "supplier_code": "-", "buy_price": "26.50 €", "original_price": "82.90 €", "price": "70.50 €", "margin": "48.5 %", "stock": "1 ks"},
+            {"name": "NERRIA", "variant": "M", "supplier_code": "-", "buy_price": "26.50 €", "original_price": "82.90 €", "price": "70.50 €", "margin": "48.5 %", "stock": "2 ks"},
+            {"name": "AURELIA - Krátke šaty z laminovanej látky s vysokým golierom", "variant": "Viacero variantov", "supplier_code": "LD3879", "buy_price": "14.90 €", "original_price": "49.90 €", "price": "42.40 €", "margin": "51.8 %", "stock": "0 ks"},
+            {"name": "AURELIA", "variant": "S/M", "supplier_code": "-", "buy_price": "14.90 €", "original_price": "49.90 €", "price": "42.40 €", "margin": "51.8 %", "stock": "2 ks"},
+            {"name": "AURELIA", "variant": "M/L", "supplier_code": "-", "buy_price": "14.90 €", "original_price": "49.90 €", "price": "42.40 €", "margin": "51.8 %", "stock": "2 ks"},
+            {"name": "LANIA - Elegantný rolák s čipkou", "variant": "Viacero variantov", "supplier_code": "M3373", "buy_price": "13.25 €", "original_price": "44.90 €", "price": "38.20 €", "margin": "52.5 %", "stock": "0 ks"},
+            {"name": "LANIA", "variant": "S/M", "supplier_code": "-", "buy_price": "13.25 €", "original_price": "44.90 €", "price": "38.20 €", "margin": "52.5 %", "stock": "3 ks"},
+            {"name": "LANIA", "variant": "M/L", "supplier_code": "-", "buy_price": "13.25 €", "original_price": "44.90 €", "price": "38.20 €", "margin": "52.5 %", "stock": "3 ks"},
+            {"name": "MILOSO - One size mäkký sveter s baby alpakou", "variant": "-", "supplier_code": "P00030", "buy_price": "21.90 €", "original_price": "63.90 €", "price": "54.30 €", "margin": "44.3 %", "stock": "2 ks"},
+            {"name": "GIULIA - Prémiový rolák s kašmírom", "variant": "Viacero variantov", "supplier_code": "P00031", "buy_price": "11.00 €", "original_price": "36.90 €", "price": "31.40 €", "margin": "51.8 %", "stock": "0 ks"},
+            {"name": "GIULIA", "variant": "Červená (Rosso), S/M", "supplier_code": "-", "buy_price": "11.00 €", "original_price": "36.90 €", "price": "31.40 €", "margin": "51.8 %", "stock": "3 ks"},
+            {"name": "GIULIA", "variant": "Červená (Rosso), M/L", "supplier_code": "-", "buy_price": "11.00 €", "original_price": "36.90 €", "price": "31.40 €", "margin": "51.8 %", "stock": "4 ks"},
+            {"name": "GIULIA", "variant": "Čierna (Nero), S/M", "supplier_code": "-", "buy_price": "11.00 €", "original_price": "36.90 €", "price": "31.40 €", "margin": "51.8 %", "stock": "4 ks"},
+            {"name": "GIULIA", "variant": "Čierna (Nero), M/L", "supplier_code": "-", "buy_price": "11.00 €", "original_price": "36.90 €", "price": "31.40 €", "margin": "51.8 %", "stock": "3 ks"},
+            {"name": "VIVIANA - Nadýchaný sveter s 80% mohérom", "variant": "Viacero variantov", "supplier_code": "M3536", "buy_price": "30.00 €", "original_price": "88.90 €", "price": "75.60 €", "margin": "45.0 %", "stock": "0 ks"},
+            {"name": "VIVIANA", "variant": "Šedá (Grigio)", "supplier_code": "-", "buy_price": "30.00 €", "original_price": "88.90 €", "price": "75.60 €", "margin": "45.0 %", "stock": "2 ks"},
+            {"name": "CAMILLA - Hrejivý rolák s prímesou alpaky", "variant": "Viacero variantov", "supplier_code": "M3530", "buy_price": "22.50 €", "original_price": "65.90 €", "price": "56.00 €", "margin": "44.6 %", "stock": "0 ks"},
+            {"name": "CAMILLA", "variant": "Hnedá (Marrone)", "supplier_code": "-", "buy_price": "22.50 €", "original_price": "65.90 €", "price": "56.00 €", "margin": "44.6 %", "stock": "3 ks"},
+            {"name": "CAMILLA", "variant": "Béžová (Beige)", "supplier_code": "-", "buy_price": "22.50 €", "original_price": "65.90 €", "price": "56.00 €", "margin": "44.6 %", "stock": "3 ks"},
+            {"name": "GABRIELLA - Mäkký kardigán v hnedej farbe", "variant": "-", "supplier_code": "M3533", "buy_price": "37.00 €", "original_price": "119.00 €", "price": "101.20 €", "margin": "49.9 %", "stock": "3 ks"},
+            {"name": "OLYMPIA - Večerné šaty s leskom", "variant": "Viacero variantov", "supplier_code": "LD4290", "buy_price": "32.50 €", "original_price": "98.90 €", "price": "84.10 €", "margin": "46.9 %", "stock": "0 ks"},
+            {"name": "OLYMPIA", "variant": "Hnedá (Marrone), S", "supplier_code": "-", "buy_price": "32.50 €", "original_price": "98.90 €", "price": "84.10 €", "margin": "46.9 %", "stock": "3 ks"},
+            {"name": "OLYMPIA", "variant": "Hnedá (Marrone), M", "supplier_code": "-", "buy_price": "32.50 €", "original_price": "98.90 €", "price": "84.10 €", "margin": "46.9 %", "stock": "3 ks"},
+            {"name": "OLYMPIA", "variant": "Čierna (Nero), S", "supplier_code": "-", "buy_price": "32.50 €", "original_price": "98.90 €", "price": "84.10 €", "margin": "46.9 %", "stock": "1 ks"},
+            {"name": "OLYMPIA", "variant": "Čierna (Nero), M", "supplier_code": "-", "buy_price": "32.50 €", "original_price": "98.90 €", "price": "84.10 €", "margin": "46.9 %", "stock": "3 ks"},
+            {"name": "OLYMPIA", "variant": "Červená (Rosso), S", "supplier_code": "-", "buy_price": "32.50 €", "original_price": "98.90 €", "price": "84.10 €", "margin": "46.9 %", "stock": "4 ks"},
+            {"name": "OLYMPIA", "variant": "Červená (Rosso), M", "supplier_code": "-", "buy_price": "32.50 €", "original_price": "98.90 €", "price": "84.10 €", "margin": "46.9 %", "stock": "1 ks"},
+            {"name": "VERONA HOODIE - Štýlová zateplená mikina", "variant": "Viacero variantov", "supplier_code": "P00030", "buy_price": "21.50 €", "original_price": "64.90 €", "price": "55.20 €", "margin": "46.5 %", "stock": "0 ks"},
+            {"name": "VERONA-HOODIE", "variant": "Hnedá (Marrone), S/M", "supplier_code": "-", "buy_price": "21.50 €", "original_price": "64.90 €", "price": "55.20 €", "margin": "46.5 %", "stock": "2 ks"},
+            {"name": "VERONA-HOODIE", "variant": "Hnedá (Marrone), M/L", "supplier_code": "-", "buy_price": "21.50 €", "original_price": "64.90 €", "price": "55.20 €", "margin": "46.5 %", "stock": "2 ks"},
+            {"name": "ROSSANA - červená sukňa s vysokým razporkom", "variant": "Viacero variantov", "supplier_code": "L9423", "buy_price": "18.13 €", "original_price": "61.90 €", "price": "52.60 €", "margin": "52.5 %", "stock": "0 ks"},
+            {"name": "ROSSANA", "variant": "S", "supplier_code": "-", "buy_price": "18.13 €", "original_price": "61.90 €", "price": "52.60 €", "margin": "52.5 %", "stock": "5 ks"},
+            {"name": "ROSSANA", "variant": "M", "supplier_code": "-", "buy_price": "18.13 €", "original_price": "61.90 €", "price": "52.60 €", "margin": "52.5 %", "stock": "5 ks"},
+            {"name": "LORETTA - Elegantné červené sako", "variant": "Viacero variantov", "supplier_code": "P00032", "buy_price": "27.38 €", "original_price": "89.00 €", "price": "75.70 €", "margin": "50.0 %", "stock": "0 ks"},
+            {"name": "P00032", "variant": "S/M", "supplier_code": "-", "buy_price": "27.38 €", "original_price": "89.00 €", "price": "75.70 €", "margin": "50.0 %", "stock": "3 ks"},
+            {"name": "P00032", "variant": "M/L", "supplier_code": "-", "buy_price": "27.38 €", "original_price": "89.00 €", "price": "75.70 €", "margin": "50.0 %", "stock": "3 ks"},
+            {"name": "UNICA - Mini sukňa s mašľou", "variant": "Viacero variantov", "supplier_code": "L9370", "buy_price": "13.88 €", "original_price": "44.90 €", "price": "38.20 €", "margin": "50.1 %", "stock": "0 ks"},
+            {"name": "UNICA-I", "variant": "Čierna (Nero), S/M", "supplier_code": "-", "buy_price": "13.88 €", "original_price": "44.90 €", "price": "38.20 €", "margin": "50.1 %", "stock": "3 ks"},
+            {"name": "UNICA-I", "variant": "Čierna (Nero), M/L", "supplier_code": "-", "buy_price": "13.88 €", "original_price": "44.90 €", "price": "38.20 €", "margin": "50.1 %", "stock": "2 ks"},
+            {"name": "UNICA-I", "variant": "Biela (Bianco), S/M", "supplier_code": "-", "buy_price": "13.88 €", "original_price": "44.90 €", "price": "38.20 €", "margin": "50.1 %", "stock": "2 ks"},
+            {"name": "UNICA-I", "variant": "Biela (Bianco), M/L", "supplier_code": "-", "buy_price": "13.88 €", "original_price": "44.90 €", "price": "38.20 €", "margin": "50.1 %", "stock": "2 ks"},
+            {"name": "Kabát CARRELLO Verde Militare", "variant": "Viacero variantov", "supplier_code": "C6287", "buy_price": "36.88 €", "original_price": "129.00 €", "price": "109.70 €", "margin": "56.6 %", "stock": "0 ks"},
+            {"name": "CARRELLO", "variant": "S", "supplier_code": "-", "buy_price": "36.88 €", "original_price": "129.00 €", "price": "109.70 €", "margin": "56.6 %", "stock": "1 ks"},
+            {"name": "CARRELLO", "variant": "M", "supplier_code": "-", "buy_price": "36.88 €", "original_price": "129.00 €", "price": "109.70 €", "margin": "56.6 %", "stock": "1 ks"},
+            {"name": "CARRELLO", "variant": "L", "supplier_code": "-", "buy_price": "36.88 €", "original_price": "129.00 €", "price": "109.70 €", "margin": "56.6 %", "stock": "1 ks"},
+            {"name": "Krátky kabát CAPPOTTO Corto", "variant": "Viacero variantov", "supplier_code": "C6660", "buy_price": "25.00 €", "original_price": "99.00 €", "price": "84.20 €", "margin": "61.6 %", "stock": "0 ks"},
+            {"name": "CAPPOTTO-C", "variant": "Camel, S", "supplier_code": "-", "buy_price": "25.00 €", "original_price": "99.00 €", "price": "84.20 €", "margin": "61.6 %", "stock": "2 ks"},
+            {"name": "CAPPOTTO-C", "variant": "Camel, M", "supplier_code": "-", "buy_price": "25.00 €", "original_price": "99.00 €", "price": "84.20 €", "margin": "61.6 %", "stock": "0 ks"},
+            {"name": "CAPPOTTO-C", "variant": "Camel, L", "supplier_code": "-", "buy_price": "25.00 €", "original_price": "99.00 €", "price": "84.20 €", "margin": "61.6 %", "stock": "2 ks"},
+            {"name": "CAPPOTTO-C", "variant": "Camel, XL", "supplier_code": "-", "buy_price": "25.00 €", "original_price": "99.00 €", "price": "84.20 €", "margin": "61.6 %", "stock": "2 ks"},
+            {"name": "NIMARA Legíny s vysokým pásom a gumou pod pätu", "variant": "Viacero variantov", "supplier_code": "P9813", "buy_price": "9.13 €", "original_price": "32.90 €", "price": "28.00 €", "margin": "58.0 %", "stock": "0 ks"},
+            {"name": "NIMARA", "variant": "S", "supplier_code": "-", "buy_price": "9.13 €", "original_price": "32.90 €", "price": "28.00 €", "margin": "58.0 %", "stock": "1 ks"},
+            {"name": "NIMARA", "variant": "M", "supplier_code": "-", "buy_price": "9.13 €", "original_price": "32.90 €", "price": "28.00 €", "margin": "58.0 %", "stock": "0 ks"},
+            {"name": "NIMARA", "variant": "L", "supplier_code": "-", "buy_price": "9.13 €", "original_price": "32.90 €", "price": "28.00 €", "margin": "58.0 %", "stock": "1 ks"},
+            {"name": "NIMARA", "variant": "XL", "supplier_code": "-", "buy_price": "9.13 €", "original_price": "32.90 €", "price": "28.00 €", "margin": "58.0 %", "stock": "4 ks"},
+            {"name": "Univerzálne Elastické Legíny ORENA", "variant": "Viacero variantov", "supplier_code": "P8308", "buy_price": "7.63 €", "original_price": "26.90 €", "price": "22.90 €", "margin": "57.3 %", "stock": "0 ks"},
+            {"name": "ORENA", "variant": "S/M", "supplier_code": "-", "buy_price": "7.63 €", "original_price": "26.90 €", "price": "22.90 €", "margin": "57.3 %", "stock": "3 ks"},
+            {"name": "ORENA", "variant": "L/XL", "supplier_code": "-", "buy_price": "7.63 €", "original_price": "26.90 €", "price": "22.90 €", "margin": "57.3 %", "stock": "3 ks"},
+            {"name": "VELIA Body s Laminovaným Efektom S/M", "variant": "-", "supplier_code": "Y0034", "buy_price": "3.38 €", "original_price": "29.90 €", "price": "25.40 €", "margin": "83.5 %", "stock": "3 ks"},
+            {"name": "SALIA CAMMELLO Sukňa s Rozporkom", "variant": "Viacero variantov", "supplier_code": "L9332", "buy_price": "14.00 €", "original_price": "58.90 €", "price": "50.10 €", "margin": "65.6 %", "stock": "0 ks"},
+            {"name": "SALIA", "variant": "S", "supplier_code": "-", "buy_price": "14.00 €", "original_price": "58.90 €", "price": "50.10 €", "margin": "65.6 %", "stock": "0 ks"},
+            {"name": "SALIA", "variant": "M", "supplier_code": "-", "buy_price": "14.00 €", "original_price": "58.90 €", "price": "50.10 €", "margin": "65.6 %", "stock": "1 ks"},
+            {"name": "SALIA", "variant": "L", "supplier_code": "-", "buy_price": "14.00 €", "original_price": "58.90 €", "price": "50.10 €", "margin": "65.6 %", "stock": "2 ks"}
         ];
 
         const tbody = document.getElementById('product-list');
@@ -277,6 +279,7 @@
                 <td style="font-weight: 500;">${p.name}</td>
                 <td class="col-variant">${p.variant}</td>
                 <td style="color: #666;">${p.supplier_code}</td>
+                <td class="col-cislo col-nakup-cena">${p.buy_price}</td>
                 <td class="col-cislo col-orig-cena">${p.original_price}</td>
                 <td class="col-cislo" style="font-weight: bold;">${p.price}</td>
                 <td class="col-cislo col-marza">${p.margin}</td>
